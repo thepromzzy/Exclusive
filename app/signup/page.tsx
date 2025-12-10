@@ -63,6 +63,7 @@ export default function SignupPage() {
   return (
     <>
       <Header />
+      <span className="mb-20 block border-border"/>
       <main className="flex min-h-[calc(100vh-200px)]">
         {/* Left Side - Image */}
         <div className="hidden lg:flex flex-1 bg-[#CBE4E8] items-center justify-center">
@@ -157,6 +158,7 @@ export default function SignupPage() {
           </div>
         </div>
       </main>
+      <span className="mb-20 block border-border"/>
       <Footer />
     </>
   )
