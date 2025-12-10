@@ -24,7 +24,7 @@ export default function Footer() {
           <div className="lg:col-span-1">
             <h3 className="text-2xl font-bold mb-6">Exclusive</h3>
             <p className="text-lg mb-4">Subscribe</p>
-            <p className="text-muted-foreground mb-4">Get 10% off your first order</p>
+            <p className=" mb-4">Get 10% off your first order</p>
             <form onSubmit={handleSubscribe} className="flex items-center border border-muted rounded overflow-hidden">
               <input
                 type="email"
@@ -42,7 +42,7 @@ export default function Footer() {
           {/* Support */}
           <div>
             <h3 className="text-lg font-medium mb-6">Support</h3>
-            <address className="not-italic text-muted-foreground space-y-3 text-sm">
+            <address className="not-italic space-y-3 text-sm">
               <p>
                 111 Bijoy sarani, Dhaka,
                 <br />
@@ -56,7 +56,7 @@ export default function Footer() {
           {/* Account */}
           <div>
             <h3 className="text-lg font-medium mb-6">Account</h3>
-            <nav className="flex flex-col gap-3 text-sm text-muted-foreground">
+            <nav className="flex flex-col gap-3 text-sm">
               <Link href="/account" className="hover:text-background transition-colors">
                 My Account
               </Link>
@@ -78,7 +78,7 @@ export default function Footer() {
           {/* Quick Link */}
           <div>
             <h3 className="text-lg font-medium mb-6">Quick Link</h3>
-            <nav className="flex flex-col gap-3 text-sm text-muted-foreground">
+            <nav className="flex flex-col gap-3 text-sm">
               <Link href="/privacy" className="hover:text-background transition-colors">
                 Privacy Policy
               </Link>
@@ -97,7 +97,7 @@ export default function Footer() {
           {/* Download App */}
           <div>
             <h3 className="text-lg font-medium mb-6">Download App</h3>
-            <p className="text-muted-foreground text-xs mb-3">Save $3 with App New User Only</p>
+            <p className="text-xs mb-3">Save $3 with App New User Only</p>
             <div className="flex gap-2 mb-4">
               <div className="w-20 h-20 bg-background/10 rounded flex items-center justify-center">
                 <img src="/Qr Code.png?height=80&width=80" alt="QR Code" className="w-16 h-16 cursor-pointer" />
