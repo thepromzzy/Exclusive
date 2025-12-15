@@ -28,8 +28,13 @@ export default function Header() {
           <Link href="/products" className="font-semibold underline ml-2">
             ShopNow
           </Link>
+          {/* Language Selector */}   
           <select className="bg-transparent border-none text-background ml-auto hidden md:block cursor-pointer">
             <option value="en">English</option>
+          </select>
+          <select>
+            <option value="USD">USD</option>
+            <option value="NGN">NGN</option>
           </select>
         </div>
       </div>
