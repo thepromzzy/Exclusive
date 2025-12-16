@@ -22,7 +22,7 @@ export default function CategoriesSidebar() {
           <li key={idx}>
             <Link
               href={`/products?category=${encodeURIComponent(category)}`}
-              className="flex items-center justify-between py-3 px-2 rounded-md text-foreground/80 hover:text-primary hover:bg-accent/50 transition-all duration-200 group"
+              className="flex items-center justify-between py-3 px-2 rounded-md text-foreground/80 transition-all duration-200 group"
             >
               <span className="text-sm font-medium group-hover:translate-x-1 transition-transform">
                 {category}
