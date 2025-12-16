@@ -14,11 +14,37 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ product, showAddToCart = false }: ProductCardProps) {
-  const { addToCart, addToWishlist, removeFromWishlist, isInWishlist, isInCart } = useApp()
+  const { addToCart, addToWishlist, removeFromWishlist, isInWishlist, isInCart, getCurrencyInfo } = useApp()
   const [isHovered, setIsHovered] = useState(false)
   const router = useRouter()
   const inWishlist = isInWishlist(product.id)
   const inCart = isInCart(product.id)
+
+  const { symbol } = getCurrencyInfo()
+
+  // Exchange rates (USD base) - updated for December 2025
+  const rates: Record<string, number> = {
+    USD: 1,
+    EUR: 0.85,     // ~0.85 EUR per USD
+    NGN: 1450,     // ~1450 NGN per USD
+    GHS: 11.50,    // ~11.50 GHS per USD
+  }
+
+  // Get current currency from store (defaults to USD if not set)
+  const currentCurrency = useApp().currency || "USD"
+  const rate = rates[currentCurrency]
+
+  // Convert and format price
+  const formatPrice = (usdPrice: number) => {
+    const converted = usdPrice * rate
+    return new Intl.NumberFormat("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(converted)
+  }
+
+  const displayedPrice = formatPrice(product.price)
+  const displayedOriginalPrice = product.originalPrice ? formatPrice(product.originalPrice) : null
 
   const handleWishlistToggle = (e: React.MouseEvent) => {
     e.preventDefault()
@@ -116,8 +142,8 @@ export default function ProductCard({ product, showAddToCart = false }: ProductC
       </Link>
 
       <div className="flex items-center gap-3 mb-2">
-        <span className="text-primary font-medium">${product.price}</span>
-        {product.originalPrice && <span className="line-through text-sm">${product.originalPrice}</span>}
+        <span className="text-primary font-medium">{symbol}{displayedPrice}</span>
+        {displayedOriginalPrice && <span className="line-through text-sm">{symbol}{displayedOriginalPrice}</span>}
       </div>
 
       <div className="flex items-center gap-2">

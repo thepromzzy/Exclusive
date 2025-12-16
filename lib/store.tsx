@@ -3,11 +3,26 @@
 import { createContext, useContext, useReducer, useEffect, type ReactNode } from "react"
 import type { CartItem, WishlistItem, User, Product } from "./types"
 
+type Currency = "USD" | "EUR" | "NGN" | "GHS"
+
+interface CurrencyInfo {
+  symbol: string
+  label: string
+}
+
+const currencyMap: Record<Currency, CurrencyInfo> = {
+  USD: { symbol: "$", label: "Dollar" },
+  EUR: { symbol: "€", label: "Euro" },
+  NGN: { symbol: "₦", label: "Naira" },
+  GHS: { symbol: "GH₵", label: "Ghana Cedi" },
+}
+
 interface AppState {
   cart: CartItem[]
   wishlist: WishlistItem[]
   user: User | null
   isAuthenticated: boolean
+  currency: Currency
 }
 
 type Action =
@@ -21,6 +36,7 @@ type Action =
   | { type: "LOGIN"; payload: User }
   | { type: "LOGOUT" }
   | { type: "UPDATE_USER"; payload: Partial<User> }
+  | { type: "SET_CURRENCY"; payload: Currency }
   | { type: "LOAD_STATE"; payload: Partial<AppState> }
 
 const initialState: AppState = {
@@ -28,6 +44,7 @@ const initialState: AppState = {
   wishlist: [],
   user: null,
   isAuthenticated: false,
+  currency: "USD", // default currency
 }
 
 function appReducer(state: AppState, action: Action): AppState {
@@ -38,7 +55,9 @@ function appReducer(state: AppState, action: Action): AppState {
         return {
           ...state,
           cart: state.cart.map((item) =>
-            item.id === action.payload.id ? { ...item, quantity: item.quantity + action.payload.quantity } : item,
+            item.id === action.payload.id
+              ? { ...item, quantity: item.quantity + action.payload.quantity }
+              : item
           ),
         }
       }
@@ -53,7 +72,7 @@ function appReducer(state: AppState, action: Action): AppState {
       return {
         ...state,
         cart: state.cart.map((item) =>
-          item.id === action.payload.id ? { ...item, quantity: action.payload.quantity } : item,
+          item.id === action.payload.id ? { ...item, quantity: action.payload.quantity } : item
         ),
       }
     case "CLEAR_CART":
@@ -77,7 +96,9 @@ function appReducer(state: AppState, action: Action): AppState {
         ...state,
         wishlist: state.wishlist.filter((item) => item.id !== action.payload),
         cart: existingCartItem
-          ? state.cart.map((item) => (item.id === action.payload ? { ...item, quantity: item.quantity + 1 } : item))
+          ? state.cart.map((item) =>
+              item.id === action.payload ? { ...item, quantity: item.quantity + 1 } : item
+            )
           : [...state.cart, cartItem],
       }
     }
@@ -90,6 +111,8 @@ function appReducer(state: AppState, action: Action): AppState {
         ...state,
         user: state.user ? { ...state.user, ...action.payload } : null,
       }
+    case "SET_CURRENCY":
+      return { ...state, currency: action.payload }
     case "LOAD_STATE":
       return { ...state, ...action.payload }
     default:
@@ -108,10 +131,12 @@ interface AppContextType extends AppState {
   login: (user: User) => void
   logout: () => void
   updateUser: (data: Partial<User>) => void
+  setCurrency: (currency: Currency) => void
   cartTotal: number
   cartCount: number
   isInWishlist: (id: string) => boolean
   isInCart: (id: string) => boolean
+  getCurrencyInfo: () => CurrencyInfo
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined)
@@ -185,6 +210,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     dispatch({ type: "UPDATE_USER", payload: data })
   }
 
+  const setCurrency = (currency: Currency) => {
+    dispatch({ type: "SET_CURRENCY", payload: currency })
+  }
+
   const cartTotal = state.cart.reduce((total, item) => total + item.price * item.quantity, 0)
 
   const cartCount = state.cart.reduce((count, item) => count + item.quantity, 0)
@@ -192,6 +221,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const isInWishlist = (id: string) => state.wishlist.some((item) => item.id === id)
 
   const isInCart = (id: string) => state.cart.some((item) => item.id === id)
+
+  const getCurrencyInfo = () => currencyMap[state.currency]
 
   return (
     <AppContext.Provider
@@ -207,10 +238,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
         login,
         logout,
         updateUser,
+        setCurrency,
         cartTotal,
         cartCount,
         isInWishlist,
         isInCart,
+        getCurrencyInfo,
       }}
     >
       {children}

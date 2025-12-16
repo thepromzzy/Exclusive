@@ -8,7 +8,7 @@ import { useApp } from "@/lib/store"
 
 export default function Header() {
   const pathname = usePathname()
-  const { cartCount, wishlist, isAuthenticated } = useApp()
+  const { cartCount, wishlist, isAuthenticated, currency, setCurrency } = useApp()
   const [searchQuery, setSearchQuery] = useState("")
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
@@ -20,28 +20,40 @@ export default function Header() {
   ]
 
   return (
-    <header className="border-b border-border bg-background sticky top-0 z-50 padding-b-20">
+    <header className="border-b border-border bg-background sticky top-0 z-50">
       {/* Top Banner */}
       <div className="bg-foreground text-background py-3 text-center text-sm">
         <div className="container flex items-center justify-center gap-2">
           <span>Summer Sale For All Swim Suits And Free Express Delivery - OFF 50%!</span>
-          <Link href="/products" className="font-semibold underline ml-2">
+          <Link href="/products" className="font-semibold underline">
             ShopNow
           </Link>
-          {/* Language Selector */}   
-          <select className="bg-transparent border-none text-background ml-auto hidden md:block cursor-pointer">
-            <option value="en">English</option>
-          </select>
-          <select>
-            <option value="USD">USD</option>
-            <option value="NGN">NGN</option>
-          </select>
+
+          {/* Language & Currency Selectors - Desktop/Tablet only */}
+          <div className="ml-auto hidden md:flex items-center gap-4">
+            {/* Language Selector */}
+            <select className="bg-transparent border-none text-background cursor-pointer focus:outline-none">
+              <option value="en">English</option>
+            </select>
+
+            {/* Currency Selector */}
+            <select
+              value={currency}
+              onChange={(e) => setCurrency(e.target.value as "USD" | "EUR" | "NGN" | "GHS")}
+              className="bg-white border-none text-black cursor-pointer focus:outline-none"
+            >
+              <option value="USD">$ Dollar</option>
+              <option value="EUR">€ Euro</option>
+              <option value="NGN">₦ Naira</option>
+              <option value="GHS">GH₵ Ghana Cedi</option>
+            </select>
+          </div>
         </div>
       </div>
 
       {/* Main Header */}
       <div className="container py-4">
-        <div className="flex items-center justify-between gap-4  mt-5 mb-5">
+        <div className="flex items-center justify-between gap-4 mt-5 mb-5">
           {/* Logo */}
           <Link href="/" className="text-2xl font-bold tracking-wide">
             Exclusive
@@ -118,7 +130,7 @@ export default function Header() {
         {/* Mobile Menu */}
         {mobileMenuOpen && (
           <nav className="md:hidden mt-4 pb-4 border-t border-border pt-4">
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-6">
               {/* Mobile Search */}
               <div className="flex items-center bg-secondary rounded px-3 py-2 gap-2">
                 <input
@@ -130,6 +142,34 @@ export default function Header() {
                 />
                 <Search className="w-5 h-5 text-foreground" />
               </div>
+
+              {/* Mobile Language & Currency Selectors */}
+              <div className="space-y-3">
+                <p className="text-sm font-medium text-foreground">Settings</p>
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <div>
+                    <label className="text-xs text-muted-foreground block mb-1">Language</label>
+                    <select className="bg-secondary text-foreground rounded px-3 py-2 w-full">
+                      <option value="en">English</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-xs text-muted-foreground block mb-1">Currency</label>
+                    <select
+                      value={currency}
+                      onChange={(e) => setCurrency(e.target.value as "USD" | "EUR" | "NGN" | "GHS")}
+                      className="bg-secondary text-foreground rounded px-3 py-2 w-full"
+                    >
+                      <option value="USD">$ Dollar</option>
+                      <option value="EUR">€ Euro</option>
+                      <option value="NGN">₦ Naira</option>
+                      <option value="GHS">GH₵ Ghana Cedi</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Mobile Nav Links */}
               {navLinks.map((link) => (
                 <Link
                   key={link.href}

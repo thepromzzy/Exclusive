@@ -10,9 +10,34 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 
 export default function CartPage() {
-  const { cart, updateCartQuantity, removeFromCart, cartTotal } = useApp()
-  const shipping = cartTotal > 140 ? 0 : 10
-  const total = cartTotal + shipping
+  const { cart, updateCartQuantity, removeFromCart, getCurrencyInfo, currency } = useApp()
+
+  // Current currency info
+  const { symbol } = getCurrencyInfo()
+
+  // Exchange rates (USD base) - accurate as of December 16, 2025
+  const rates: Record<string, number> = {
+    USD: 1,
+    EUR: 0.92,     // ~0.92 EUR per USD
+    NGN: 1460,     // ~1460 NGN per USD
+    GHS: 11.50,    // ~11.50 GHS per USD
+  }
+
+  const rate = rates[currency] || 1
+
+  // Format price in selected currency
+  const formatPrice = (usdPrice: number) => {
+    const converted = usdPrice * rate
+    return new Intl.NumberFormat("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(converted)
+  }
+
+  // Calculate totals in selected currency
+  const cartTotalInCurrency = cart.reduce((total, item) => total + item.price * item.quantity, 0) * rate
+  const shippingInCurrency = cartTotalInCurrency > 140 * rate ? 0 : 10 * rate
+  const grandTotalInCurrency = cartTotalInCurrency + shippingInCurrency
 
   return (
     <>
@@ -44,50 +69,55 @@ export default function CartPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {cart.map((item) => (
-                      <tr key={`${item.id}-${item.selectedColor}-${item.selectedSize}`} className="border-b">
-                        <td className="py-4 px-4">
-                          <div className="flex items-center gap-4">
-                            <div className="relative w-16 h-16 bg-muted rounded">
-                              <Image
-                                src={item.image || "/placeholder.svg?height=64&width=64"}
-                                alt={item.name}
-                                fill
-                                className="object-contain p-2"
-                              />
+                    {cart.map((item) => {
+                      const unitPrice = formatPrice(item.price)
+                      const subtotal = formatPrice(item.price * item.quantity)
+
+                      return (
+                        <tr key={`${item.id}-${item.selectedColor}-${item.selectedSize}`} className="border-b">
+                          <td className="py-4 px-4">
+                            <div className="flex items-center gap-4">
+                              <div className="relative w-16 h-16 bg-muted rounded">
+                                <Image
+                                  src={item.image || "/placeholder.svg?height=64&width=64"}
+                                  alt={item.name}
+                                  fill
+                                  className="object-contain p-2"
+                                />
+                              </div>
+                              <span className="font-medium">{item.name}</span>
                             </div>
-                            <span className="font-medium">{item.name}</span>
-                          </div>
-                        </td>
-                        <td className="py-4 px-4">${item.price}</td>
-                        <td className="py-4 px-4">
-                          <div className="flex items-center border rounded w-fit">
+                          </td>
+                          <td className="py-4 px-4">{symbol}{unitPrice}</td>
+                          <td className="py-4 px-4">
+                            <div className="flex items-center border rounded w-fit">
+                              <button
+                                onClick={() => updateCartQuantity(item.id, Math.max(1, item.quantity - 1))}
+                                className="px-3 py-1 hover:bg-muted"
+                              >
+                                -
+                              </button>
+                              <span className="px-4 py-1 border-x">{item.quantity}</span>
+                              <button
+                                onClick={() => updateCartQuantity(item.id, item.quantity + 1)}
+                                className="px-3 py-1 hover:bg-muted"
+                              >
+                                +
+                              </button>
+                            </div>
+                          </td>
+                          <td className="py-4 px-4">{symbol}{subtotal}</td>
+                          <td className="py-4 px-4">
                             <button
-                              onClick={() => updateCartQuantity(item.id, Math.max(1, item.quantity - 1))}
-                              className="px-3 py-1 hover:bg-muted"
+                              onClick={() => removeFromCart(item.id)}
+                              className="text-primary hover:text-primary/80"
                             >
-                              -
+                              <X className="h-5 w-5" />
                             </button>
-                            <span className="px-4 py-1 border-x">{item.quantity}</span>
-                            <button
-                              onClick={() => updateCartQuantity(item.id, item.quantity + 1)}
-                              className="px-3 py-1 hover:bg-muted"
-                            >
-                              +
-                            </button>
-                          </div>
-                        </td>
-                        <td className="py-4 px-4">${(item.price * item.quantity).toFixed(2)}</td>
-                        <td className="py-4 px-4">
-                          <button
-                            onClick={() => removeFromCart(item.id)}
-                            className="text-primary hover:text-primary/80"
-                          >
-                            <X className="h-5 w-5" />
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
+                          </td>
+                        </tr>
+                      )
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -112,15 +142,15 @@ export default function CartPage() {
                   <div className="space-y-4">
                     <div className="flex justify-between pb-4 border-b">
                       <span>Subtotal:</span>
-                      <span>${cartTotal.toFixed(2)}</span>
+                      <span>{symbol}{formatPrice(cart.reduce((t, i) => t + i.price * i.quantity, 0))}</span>
                     </div>
                     <div className="flex justify-between pb-4 border-b">
                       <span>Shipping:</span>
-                      <span>{shipping === 0 ? "Free" : `$${shipping.toFixed(2)}`}</span>
+                      <span>{shippingInCurrency === 0 ? "Free" : `${symbol}${formatPrice(10)}`}</span>
                     </div>
                     <div className="flex justify-between font-semibold">
                       <span>Total:</span>
-                      <span>${total.toFixed(2)}</span>
+                      <span>{symbol}{formatPrice(grandTotalInCurrency / rate)}</span> {/* or directly use formatted grandTotalInCurrency */}
                     </div>
                   </div>
                   <Link href="/checkout" className="block mt-6">

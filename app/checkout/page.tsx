@@ -10,9 +10,34 @@ import { useApp } from "@/lib/store"
 
 export default function CheckoutPage() {
   const router = useRouter()
-  const { cart, cartTotal, clearCart, user, isAuthenticated } = useApp()
-  const shipping = cartTotal > 140 ? 0 : 10
-  const total = cartTotal + shipping
+  const { cart, cartTotal, clearCart, user, isAuthenticated, getCurrencyInfo, currency } = useApp()
+
+  // Current currency info
+  const { symbol } = getCurrencyInfo()
+
+  // Exchange rates (USD base) - accurate as of December 16, 2025
+  const rates: Record<string, number> = {
+    USD: 1,
+    EUR: 0.8506,   // 1 USD ≈ 0.8506 EUR
+    NGN: 1460,     // 1 USD ≈ 1460 NGN
+    GHS: 11.50,    // 1 USD ≈ 11.50 GHS
+  }
+
+  const rate = rates[currency] || 1
+
+  // Format price in selected currency
+  const formatPrice = (usdPrice: number) => {
+    const converted = usdPrice * rate
+    return new Intl.NumberFormat("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(converted)
+  }
+
+  // Calculate totals in selected currency
+  const subtotalInCurrency = cart.reduce((sum, item) => sum + item.price * item.quantity, 0) * rate
+  const shippingInCurrency = subtotalInCurrency > 140 * rate ? 0 : 10 * rate
+  const totalInCurrency = subtotalInCurrency + shippingInCurrency
 
   const [formData, setFormData] = useState({
     firstName: user?.firstName || "",
@@ -107,7 +132,7 @@ export default function CheckoutPage() {
               </div>
 
               <div>
-                <label className="block  mb-2">
+                <label className="block mb-2">
                   Street Address<span className="text-primary">*</span>
                 </label>
                 <input
@@ -201,7 +226,7 @@ export default function CheckoutPage() {
                       </div>
                       <span className="text-sm">{item.name}</span>
                     </div>
-                    <span>${item.price * item.quantity}</span>
+                    <span>{symbol}{formatPrice(item.price * item.quantity)}</span>
                   </div>
                 ))}
 
@@ -209,15 +234,15 @@ export default function CheckoutPage() {
                 <div className="border-t border-border pt-6 space-y-4">
                   <div className="flex justify-between">
                     <span>Subtotal:</span>
-                    <span>${cartTotal}</span>
+                    <span>{symbol}{formatPrice(cart.reduce((sum, item) => sum + item.price * item.quantity, 0))}</span>
                   </div>
                   <div className="flex justify-between border-b border-border pb-4">
                     <span>Shipping:</span>
-                    <span>{shipping === 0 ? "Free" : `$${shipping}`}</span>
+                    <span>{shippingInCurrency === 0 ? "Free" : `${symbol}${formatPrice(10)}`}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="font-medium">Total:</span>
-                    <span className="font-medium">${total}</span>
+                    <span className="font-medium">{symbol}{formatPrice(totalInCurrency / rate)}</span>
                   </div>
                 </div>
 
@@ -234,10 +259,10 @@ export default function CheckoutPage() {
                     />
                     <span>Bank</span>
                     <div className="ml-auto flex gap-2">
-                      <img src="/bkash.png?height=30&width=40" alt="Visa" className="h-6" />
+                      <img src="/bkash.png?height=30&width=40" alt="Bkash" className="h-6" />
                       <img src="/visa.png?height=30&width=40" alt="Visa" className="h-6" />
-                      <img src="/Mastercard.png?height=30&width=40" alt="Visa" className="h-6" />
-                      <img src="/payment-card.png?height=30&width=40" alt="Mastercard" className="h-6" />
+                      <img src="/Mastercard.png?height=30&width=40" alt="Mastercard" className="h-6" />
+                      <img src="/payment-card.png?height=30&width=40" alt="Other card" className="h-6" />
                     </div>
                   </label>
                   <label className="flex items-center gap-3 cursor-pointer">
